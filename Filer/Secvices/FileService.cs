@@ -1,4 +1,5 @@
-﻿using Filer.Utilities;
+﻿using Filer.Models;
+using Filer.Utilities;
 using System.Net.Http.Headers;
 
 namespace Filer.Secvices;
@@ -8,6 +9,7 @@ public interface IFileService
     Task<string> UploadFileAsync(Stream fileStream, string fileName, string folderPath);
     Task<(Stream Content, string ContentType)> DownloadFileAsync(string filePath);
     Task<bool> DeleteFileAsync(string filePath);
+    Task<FileUrl> GetFileDataAsync(string filePath);
 }
 
 public class SeaweedService : IFileService
@@ -58,5 +60,20 @@ public class SeaweedService : IFileService
         var response = await _httpClient.DeleteAsync(requestUrl);
 
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<FileUrl> GetFileDataAsync(string filePath)
+    {
+        var requestUrl = $"{_filerUrl}/{filePath.TrimStart('/')}";
+        var response = await _httpClient.GetAsync(requestUrl);
+        response.EnsureSuccessStatusCode();
+
+        var fileUrl = new FileUrl
+        {
+            Url = requestUrl,
+            Name = filePath,
+            Size = response.Content.Headers.ContentLength ?? 0
+        };
+        return fileUrl;
     }
 }

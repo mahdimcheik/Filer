@@ -24,7 +24,7 @@ public class FilesController : ControllerBase
     /// <param name="folder">Le dossier de destination (optionnel)</param>
     [HttpPost("upload")]
     [DisableRequestSizeLimit] // Utile pour les gros fichiers
-    [Authorize]
+    //[Authorize]
     public async Task<IActionResult> Upload(IFormFile file, [FromQuery] string folder = "uploads")
     {
         if (file == null || file.Length == 0)
@@ -74,6 +74,37 @@ public class FilesController : ControllerBase
         {
             _logger.LogError(ex, "Erreur lors du téléchargement de {Path}", path);
             return StatusCode(500, "Erreur lors de la récupération du fichier.");
+        }
+    }
+
+    /// <summary>
+    /// Retrieves metadata information about a file located at the specified path from the storage server.
+    /// </summary>
+    /// <remarks>This method is intended for use in HTTP GET requests to obtain file details from the storage
+    /// backend. The response includes appropriate HTTP status codes for error scenarios, such as missing files or
+    /// invalid input.</remarks>
+    /// <param name="path">The relative or absolute path to the file whose information is to be retrieved. Cannot be null or empty.</param>
+    /// <returns>An <see cref="IActionResult"/> containing the file metadata if found; returns a 400 Bad Request if <paramref
+    /// name="path"/> is null or empty, a 404 Not Found if the file does not exist, or a 500 Internal Server Error if an
+    /// unexpected error occurs.</returns>
+    [HttpGet("info")]
+    public async Task<IActionResult> GetFileInfo([FromQuery] string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return BadRequest("Le chemin du fichier est requis.");
+        try
+        {
+            var fileInfo = await _fileService.GetFileDataAsync(path);
+            return Ok(fileInfo);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return NotFound("Le fichier n'existe pas sur le serveur de stockage.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération des informations de {Path}", path);
+            return StatusCode(500, "Erreur lors de la récupération des informations du fichier.");
         }
     }
 
