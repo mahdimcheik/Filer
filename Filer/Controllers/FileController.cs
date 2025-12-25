@@ -1,4 +1,7 @@
-﻿using Filer.Secvices;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Filer.Secvices;
+using Filer.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,6 +26,7 @@ public class FilesController : ControllerBase
     /// <param name="file">Le fichier provenant du formulaire</param>
     /// <param name="folder">Le dossier de destination (optionnel)</param>
     [HttpPost("upload")]
+    [Authorize]
     [DisableRequestSizeLimit] // Utile pour les gros fichiers
     //[Authorize]
     public async Task<IActionResult> Upload(IFormFile file, [FromQuery] string folder = "uploads")
@@ -32,15 +36,18 @@ public class FilesController : ControllerBase
 
         try
         {
+            var serviceName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? folder;
             using var stream = file.OpenReadStream();
-            var fileUrl = await _fileService.UploadFileAsync(stream, file.FileName, folder);
+            var fileUrl = await _fileService.UploadFileAsync(stream, file.FileName, serviceName);
 
-            return Ok(new
-            {
-                Message = "Fichier uploadé avec succès",
-                Url = fileUrl,
-                FileName = file.FileName
-            });
+            return Ok(
+                new
+                {
+                    Message = "Fichier uploadé avec succès",
+                    Url = fileUrl,
+                    FileName = file.FileName,
+                }
+            );
         }
         catch (Exception ex)
         {
@@ -54,6 +61,7 @@ public class FilesController : ControllerBase
     /// </summary>
     /// <param name="path">Chemin complet du fichier (ex: uploads/mon-image.png)</param>
     [HttpGet("download")]
+    [Authorize]
     public async Task<IActionResult> Download([FromQuery] string path)
     {
         if (string.IsNullOrEmpty(path))
@@ -61,6 +69,8 @@ public class FilesController : ControllerBase
 
         try
         {
+            var serviceName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            path = $"{serviceName}/{path}";
             var (content, contentType) = await _fileService.DownloadFileAsync(path);
 
             // On retourne le flux directement au navigateur/client Angular
@@ -88,12 +98,15 @@ public class FilesController : ControllerBase
     /// name="path"/> is null or empty, a 404 Not Found if the file does not exist, or a 500 Internal Server Error if an
     /// unexpected error occurs.</returns>
     [HttpGet("info")]
+    [Authorize]
     public async Task<IActionResult> GetFileInfo([FromQuery] string path)
     {
         if (string.IsNullOrEmpty(path))
             return BadRequest("Le chemin du fichier est requis.");
         try
         {
+            var serviceName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+            path = $"{serviceName}/{path}";
             var fileInfo = await _fileService.GetFileDataAsync(path);
             return Ok(fileInfo);
         }
@@ -112,11 +125,14 @@ public class FilesController : ControllerBase
     /// Supprime un fichier
     /// </summary>
     [HttpDelete]
+    [Authorize]
     public async Task<IActionResult> Delete([FromQuery] string path)
     {
         if (string.IsNullOrEmpty(path))
             return BadRequest("Le chemin du fichier est requis.");
 
+        var serviceName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+        path = $"{serviceName}/{path}";
         var success = await _fileService.DeleteFileAsync(path);
 
         if (success)
