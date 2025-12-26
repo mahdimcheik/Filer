@@ -3,7 +3,7 @@
 public static class EnvironmentVariables
 {
     public static string FilerUrl =>
-        Environment.GetEnvironmentVariable("FilerUrl") ?? throw new Exception("erreur");
+        Environment.GetEnvironmentVariable("FILER_URL") ?? throw new Exception("erreur");
     public static string JwtSecret =>
         Environment.GetEnvironmentVariable("JWT_SECRET") ?? "JWT_SECRETJWT_SECRETJWT_SECRETJWT_SECRETJWT_SECRET";
 }
