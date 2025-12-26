@@ -14,7 +14,7 @@
       "launchUrl": "https://localhost:7043/index.html",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "FilerUrl": "http://localhost:8888",
+        "FilerUrl": "https://files.bonprof.fr",
         "JWT_SECRET": "ThisIsAkeyy_ForJWTToken12345hisIsAkeyy_ForJWTToken12345"
       },
       "dotnetRunMessages": true,
