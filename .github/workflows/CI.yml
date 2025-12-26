@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build . --file Filer/Dockerfile --tag filer:latest
+      run: docker build . --file Filer/Dockerfile --tag mahdimcheik/filer:latest
 
     - name: Login to DockerHub
       uses: docker/login-action@v3
