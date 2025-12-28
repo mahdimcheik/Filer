@@ -10,6 +10,7 @@ public interface IFileService
     Task<(Stream Content, string ContentType)> DownloadFileAsync(string filePath);
     Task<bool> DeleteFileAsync(string filePath);
     Task<FileUrl> GetFileDataAsync(string filePath);
+    Task<(Stream Content, string ContentType, string FileName)> DownloadFileFromUrlAsync(string fileUrl);
 }
 
 public class SeaweedService : IFileService
@@ -75,5 +76,39 @@ public class SeaweedService : IFileService
             Size = response.Content.Headers.ContentLength ?? 0
         };
         return fileUrl;
+    }
+
+    /// <summary>
+    /// Télécharge un fichier à partir d'une URL complète
+    /// Exemple: domaine.com/user/123/avatar.jpg -> télécharge avatar.jpg depuis user/123/
+    /// </summary>
+    /// <param name="fileUrl">URL complète du fichier (ex: https://domain.com/user/123/avatar.jpg)</param>
+    /// <returns>Tuple contenant le flux du fichier, le type de contenu et le nom du fichier</returns>
+    public async Task<(Stream Content, string ContentType, string FileName)> DownloadFileFromUrlAsync(string fileUrl)
+    {
+        if (string.IsNullOrWhiteSpace(fileUrl))
+            throw new ArgumentException("L'URL du fichier ne peut pas être vide.", nameof(fileUrl));
+
+        // Parse l'URL pour extraire le chemin
+        Uri uri;
+        try
+        {
+            uri = new Uri(fileUrl);
+        }
+        catch (UriFormatException ex)
+        {
+            throw new ArgumentException("L'URL fournie n'est pas valide.", nameof(fileUrl), ex);
+        }
+
+        // Extrait le chemin sans le slash initial (ex: /user/123/avatar.jpg -> user/123/avatar.jpg)
+        var filePath = uri.AbsolutePath.TrimStart('/');
+        
+        // Extrait le nom du fichier depuis le chemin
+        var fileName = Path.GetFileName(filePath);
+
+        // Utilise la méthode existante pour télécharger le fichier
+        var (content, contentType) = await DownloadFileAsync(filePath);
+
+        return (content, contentType, fileName);
     }
 }

@@ -1,9 +1,11 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Filer.Secvices;
+﻿using Filer.Secvices;
 using Filer.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.IO;
+using System.Security.Claims;
 
 namespace Filer.Controllers;
 
@@ -18,6 +20,26 @@ public class FilesController : ControllerBase
     {
         _fileService = fileService;
         _logger = logger;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DirectDownload()
+    {
+        try
+        {
+            var path = Request.Host.Value ?? throw new Exception("Pas d'url valide");
+            var (content, contentType) = await _fileService.DownloadFileAsync(path);
+
+            return File(content, contentType, Path.GetFileName(path));
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return NotFound("Le fichier n'existe pas sur le serveur de stockage.");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Erreur lors de la récupération du fichier.");
+        }
     }
 
     /// <summary>
@@ -86,6 +108,7 @@ public class FilesController : ControllerBase
             return StatusCode(500, "Erreur lors de la récupération du fichier.");
         }
     }
+
 
     /// <summary>
     /// Retrieves metadata information about a file located at the specified path from the storage server.
