@@ -10,17 +10,16 @@ namespace Filer.Controllers
     {
         [HttpGet]
         public async Task<IActionResult> GetToken(
-            [FromQuery] string serviceName,
-            [FromQuery] string[] scopes
+            [FromQuery] string serviceName
         )
         {
-            if (string.IsNullOrEmpty(serviceName) || scopes == null || scopes.Length == 0)
+            if (string.IsNullOrEmpty(serviceName) )
             {
                 return BadRequest("Le nom du service et les scopes sont requis.");
             }
             try
             {
-                var token = authService.GenerateToken(serviceName, scopes);
+                var token = authService.GenerateToken(serviceName);
                 return Ok(
                     new ResponseAuth
                     {
