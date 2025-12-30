@@ -38,8 +38,10 @@ public class FallbackController : ControllerBase
                 "swagger",
                 "swagger-ui",
                 "files/",
-                "auth/"
+                "auth/",
+                "index"
             };
+
 
             if (excludedPrefixes.Any(prefix => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
             {
