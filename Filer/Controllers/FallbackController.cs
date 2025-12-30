@@ -48,7 +48,7 @@ public class FallbackController : ControllerBase
                 return NotFound();
             }
 
-            var (content, contentType) = await _fileService.DownloadFileAsync(path);
+            var (content, contentType) = await _fileService.DownloadFileAsync(path);            
 
             return File(content, contentType, Path.GetFileName(path));
         }

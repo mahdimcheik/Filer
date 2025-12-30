@@ -46,10 +46,23 @@ public class SeaweedService : IFileService
         var requestUrl = $"{_filerUrl}/{filePath.TrimStart('/')}";
         var response = await _httpClient.GetAsync(requestUrl, HttpCompletionOption.ResponseHeadersRead);
 
+        // Check if file exists
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            throw new FileNotFoundException($"File not found: {filePath}");
+        }
+
         response.EnsureSuccessStatusCode();
 
-        var stream = await response.Content.ReadAsStreamAsync();
         var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+
+        // If we get HTML back, it's likely an error page, not the actual file
+        if (contentType.Contains("text/html", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new FileNotFoundException($"File not found or error page returned: {filePath}");
+        }
+
+        var stream = await response.Content.ReadAsStreamAsync();
 
         return (stream, contentType);
     }
@@ -67,6 +80,12 @@ public class SeaweedService : IFileService
     {
         var requestUrl = $"{_filerUrl}/{filePath.TrimStart('/')}";
         var response = await _httpClient.GetAsync(requestUrl);
+        
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            throw new FileNotFoundException($"File not found: {filePath}");
+        }
+        
         response.EnsureSuccessStatusCode();
 
         var fileUrl = new FileUrl
