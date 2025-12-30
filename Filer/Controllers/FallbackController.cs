@@ -23,41 +23,41 @@ public class FallbackController : ControllerBase
     /// Fallback handler pour toutes les URLs non correspondantes
     /// Exemple: /user/123/avatar.jpg
     /// </summary>
-    //[HttpGet("/{**path}")]
-    //[Route("/{**path}")]
-    //public async Task<IActionResult> HandleFallback(string path)
-    //{
-    //    try
-    //    {
-    //        if (string.IsNullOrWhiteSpace(path))
-    //            return BadRequest("Le chemin du fichier est requis.");
+    [HttpGet("/{**path}")]
+    [Route("/{**path}")]
+    public async Task<IActionResult> HandleFallback(string path)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return BadRequest("Le chemin du fichier est requis.");
 
-    //        // Exclure les chemins Swagger et API
-    //        var excludedPrefixes = new[]
-    //        {
-    //            "swagger",
-    //            "swagger-ui",
-    //            "files/",
-    //            "auth/"
-    //        };
+            // Exclure les chemins Swagger et API
+            var excludedPrefixes = new[]
+            {
+                "swagger",
+                "swagger-ui",
+                "files/",
+                "auth/"
+            };
 
-    //        if (excludedPrefixes.Any(prefix => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
-    //        {
-    //            return NotFound();
-    //        }
+            if (excludedPrefixes.Any(prefix => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+            {
+                return NotFound();
+            }
 
-    //        var (content, contentType) = await _fileService.DownloadFileAsync(path);
+            var (content, contentType) = await _fileService.DownloadFileAsync(path);
 
-    //        return File(content, contentType, Path.GetFileName(path));
-    //    }
-    //    catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-    //    {
-    //        return NotFound("Le fichier n'existe pas sur le serveur de stockage.");
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "Erreur lors de la récupération du fichier: {Path}", path);
-    //        return StatusCode(500, "Erreur lors de la récupération du fichier.");
-    //    }
-    //}
+            return File(content, contentType, Path.GetFileName(path));
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return NotFound("Le fichier n'existe pas sur le serveur de stockage.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération du fichier: {Path}", path);
+            return StatusCode(500, "Erreur lors de la récupération du fichier.");
+        }
+    }
 }
