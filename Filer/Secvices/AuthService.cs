@@ -8,7 +8,7 @@ namespace Filer.Secvices;
 
 public class AuthService
 {
-    public string GenerateToken(string serviceName, string[] scopes)
+    public string GenerateToken(string serviceName)
     {
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(EnvironmentVariables.JwtSecret)
@@ -19,7 +19,6 @@ public class AuthService
         var claims = new List<Claim>
     {
         new Claim(JwtRegisteredClaimNames.Sub, serviceName),
-        new Claim("scopes", string.Join(",", scopes)),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
     };
 
