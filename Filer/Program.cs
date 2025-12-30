@@ -33,8 +33,8 @@ ConfigureCors(builder.Services);
 
 var app = builder.Build();
 
+// Swagger doit être configuré en premier
 app.UseSwagger();
-app.UseCors();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Filer API v1");
@@ -42,11 +42,13 @@ app.UseSwaggerUI(c =>
     c.DocumentTitle = "Filer API Documentation";
 });
 
+app.UseCors();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+// MapControllers en dernier pour que les routes spécifiques aient la priorité
 app.MapControllers();
 
 app.Run();

@@ -143,33 +143,4 @@ public class FilesController : ControllerBase
 
         return NotFound("Le fichier n'a pas pu être trouvé ou supprimé.");
     }
-
-    /// <summary>
-    /// Fallback handler for all unmatched URLs
-    /// Handles requests like: /user/123/avatar.jpg
-    /// </summary>
-    /// <param name="path">The full path to the file (captured by catch-all route)</param>
-    [HttpGet("/{**path}")]
-    [ApiExplorerSettings(IgnoreApi = true)] // Hide from Swagger
-    public async Task<IActionResult> HandleFallback(string path)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(path))
-                return BadRequest("Le chemin du fichier est requis.");
-
-            var (content, contentType) = await _fileService.DownloadFileAsync(path);
-
-            return File(content, contentType, Path.GetFileName(path));
-        }
-        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            return NotFound("Le fichier n'existe pas sur le serveur de stockage.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erreur lors de la récupération du fichier: {Path}", path);
-            return StatusCode(500, "Erreur lors de la récupération du fichier.");
-        }
-    }
 }
